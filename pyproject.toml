@@ -7,4 +7,6 @@
     authors = [
         {name = "Jacob Striebel"}
     ]
-    description = "Description stub"
+    description = "Document batcher"
+[project.urls]
+    "Homepage" = "https://github.com/striebel/document-batcher"
