@@ -176,9 +176,3 @@ class DocumentBatch:
         return self._done
 
 
-    def is_slowdown(self : DocumentBatch) -> bool:
-
-        assert self._is_done is True
-
-
-        assert False, 'TODO: implement'

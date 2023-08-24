@@ -61,21 +61,99 @@ class OutputFile:
     ) -> str:
         assert isinstance(self._file_path, str)
         return self._file_path
-    
+
 
     #######################################################
-    #### constructor
+    #### prevent writing to the output file
 
+    def _set_read_only(
+        self      : OutputFile,
+        read_only : bool
+    ) -> None:
+        assert (
+            not hasattr(self, '_read_only')
+            or isinstance(self._read_only, bool)
+        )
+        assert isinstance(read_only, bool)
+        if read_only:
+            assert hasattr(self, '_file')
+            self._file.close()
+            del self._file
+        self._read_only = read_only
+    
+    def _is_read_only(self : OutputFile) -> bool:
+        assert isinstance(self._read_only, bool)
+        return self._read_only
+    
+    
+    #######################################################
+    #### updated and get the length of output file
+    
+    def get_file_len_in_docs(self : OutputFile) -> int:
+        if __debug__:
+            assert isinstance(self._docs, list)
+            for doc in self._docs:
+                assert isinstance(doc, Document)
+        return len(self._docs)
+    
+    def _file_len_in_sents_plus_equals(
+        self    : OutputFile,
+        n_sents : int
+    ) -> None:
+        assert isinstance(self._file_len_in_sents, int)
+        assert isinstance(n_sents, int)
+        self._file_len_in_sents += n_sents
+        assert 0 <= self._file_len_in_sents
+        
+    def get_file_len_in_sents(self : OutputFile) -> int:
+        assert isinstance(self._file_len_in_sents, int)
+        assert 0 <= self._file_len_in_sents
+        return self._file_len_in_sents
+
+    def _file_len_in_words_plus_equals(
+        self    : OutputFile,
+        n_words : int
+    ) -> None:
+        assert isinstance(self._file_len_in_words, int)
+        assert isinstance(n_words, int)
+        self._file_len_in_words += n_words
+        assert 0 <= self._file_len_in_words
+
+    def get_file_len_in_words(self : OutputFile) -> int:
+        assert isinstance(self._file_len_in_words, int)
+        assert 0 <= self._file_len_in_words
+        return self._file_len_in_words
+    
+    def _file_len_in_chars_plus_equals(
+        self    : OutputFile,
+        n_chars : int
+    ) -> None:
+        assert isinstance(self._file_len_in_chars, int)
+        assert isinstance(n_chars, int)
+        self._file_len_in_chars += n_chars
+        assert 0 <= self._file_len_in_chars
+
+    def get_file_len_in_chars(self : OutputFile) -> int:
+        assert isinstance(self._file_len_in_chars, int)
+        assert 0 <= self._file_len_in_chars
+        return self._file_len_in_chars
+    
+    
+    #######################################################
+    #### constructor
+    
     def __init__(
         self                     : OutputFile,
         logger                   : Logger,
         predicted_statistics_key : str,
         file_path                : str
     ) -> OutputFile:
-
+        
         self._set_logger(logger)                                    ; del logger
         self._set_predicted_statistics_key(predicted_statistics_key); del predicted_statistics_key
         self._set_file_path(file_path)                              ; del file_path
+        
+        self._set_read_only(False)
         
         self._get_logger().debug(
             'io.output_file: OutputFile.__init__: file_path: {0}'
@@ -83,7 +161,7 @@ class OutputFile:
         )
         
         self._docs = []  # list of Document objects in the output file
-
+        
         self._sizes = [] # parallel list where the entry at index n
                          #     is the byte-index plus one
                          #     of the last byte in the output file
@@ -143,8 +221,7 @@ class OutputFile:
                     if b'' == read_byte:
                         assert b'' == output_file_bmode.read() # reconfirm we are at end of file
                         break
-
-        self._file_len_in_docs  = 0
+        
         self._file_len_in_sents = 0
         self._file_len_in_words = 0
         self._file_len_in_chars = 0
@@ -153,7 +230,6 @@ class OutputFile:
         for doc, size in zip(self._docs, self._sizes):
             assert isinstance(size, int)
             assert 0 < size
-            self._file_len_in_docs_plus_equals(1)
             self._file_len_in_sents_plus_equals(doc.get_len_in_sents())
             self._file_len_in_words_plus_equals(doc.get_len_in_words())
             self._file_len_in_chars_plus_equals(doc.get_len_in_chars())
@@ -163,16 +239,14 @@ class OutputFile:
     
     
     #######################################################
-    #### get a document in the output file by its index;
-    ####     this method cannot be called after the call
-    ####     has been made to the below method,
-    ####     delete_output_docs_after_index
+    #### get a document in the output file by its index
 
     def get_output_doc_at_index(
         self      : OutputFile,
         doc_index : int
     ) -> Document:
-
+        assert hasattr(self, '_docs')
+        
         if 0 <= doc_index and doc_index < len(self._docs):
             return self._docs[doc_index]
         else:
@@ -186,17 +260,16 @@ class OutputFile:
 
     #################################################################
     #### truncate all data in the output file after a given document
-    ####     specified by its document index
-    ####     (not by byte index in the file);
+    ####     specified by its document index;
     ####     this method may only be called once
     
     def delete_output_docs_after_index(
         self      : OutputFile,
         doc_index : int
     ) -> None:
-        assert hasattr(self, '_docs')   # i.e., these two asserts confirm that
-        assert hasattr(self, '_sizes')  # this method has not yet been called
-                                        # (this method should only be called once)
+        assert hasattr(self, '_sizes')  # check that this method has not yet been called;
+                                        #     the _sizes attribute is deleted at the end
+                                        #     of this method
         
         if -1 == doc_index:
             if os.path.isfile(self._get_file_path()):
@@ -227,103 +300,45 @@ class OutputFile:
                 )
         
         for doc in self._docs[doc_index+1:]:
-            self._file_len_in_docs_plus_equals(-1)
             self._file_len_in_sents_plus_equals(-doc.get_len_in_sents())
             self._file_len_in_words_plus_equals(-doc.get_len_in_words())
             self._file_len_in_chars_plus_equals(-doc.get_len_in_chars())
-
+        
         self._docs  = self._docs[:doc_index+1]
         self._sizes = self._sizes[:doc_index+1]
         
         assert self.get_file_len_in_docs() == len(self._docs)
         assert self.get_file_len_in_docs() == len(self._sizes)
         
-        del self._docs
-        del self._sizes
+        del self._sizes # the _sizes attribute is used only by this method
+                        #     and this method must only be called once,
+                        #     so we now delete the _sizes attribute
         
         assert hasattr(self, '_file') is False
         self._file = open(self._get_file_path(), 'a')
     
-   
+    
     #######################################################
     #### append a document to the output file
-    #### (writing it out to the file)
-
+    
     def append_output_doc(
         self : Writer,
         doc  : Document
     ) -> None:
-        assert 'a' == self._file.mode # 'a' stands for append
-
+        assert not self._is_read_only()
+        
+        assert 'a' == self._file.mode # 'a' for append
+        
         json_str = json.dumps(doc.get_output_dict())
         if 0 < self._file.tell():
             json_str = '\n' + json_str
-
+        
         self._file.write(json_str)
-
-        self._file_len_in_docs_plus_equals(1)
+        
+        self._docs.append(doc)
+        
         self._file_len_in_sents_plus_equals(doc.get_len_in_sents())
         self._file_len_in_words_plus_equals(doc.get_len_in_words())
         self._file_len_in_chars_plus_equals(doc.get_len_in_chars())
         
-    
-    #######################################################
-    #### updated and get the length of output file
-
-    def _file_len_in_docs_plus_equals(
-        self  : OutputFile,
-        ndocs : int
-    ) -> None:
-        assert isinstance(self._file_len_in_docs, int)
-        assert isinstance(ndocs, int)
-        self._file_len_in_docs += ndocs
-        assert 0 <= self._file_len_in_docs
-    
-    def get_file_len_in_docs(self : OutputFile) -> int:
-        assert isinstance(self._file_len_in_docs, int)
-        assert 0 <= self._file_len_in_docs
-        return self._file_len_in_docs
-
-    def _file_len_in_sents_plus_equals(
-        self    : OutputFile,
-        n_sents : int
-    ) -> None:
-        assert isinstance(self._file_len_in_sents, int)
-        assert isinstance(n_sents, int)
-        self._file_len_in_sents += n_sents
-        assert 0 <= self._file_len_in_sents
-
-    def get_file_len_in_sents(self : OutputFile) -> int:
-        assert isinstance(self._file_len_in_sents, int)
-        assert 0 <= self._file_len_in_sents
-        return self._file_len_in_sents
-
-    def _file_len_in_words_plus_equals(
-        self    : OutputFile,
-        n_words : int
-    ) -> None:
-        assert isinstance(self._file_len_in_words, int)
-        assert isinstance(n_words, int)
-        self._file_len_in_words += n_words
-        assert 0 <= self._file_len_in_words
-
-    def get_file_len_in_words(self : OutputFile) -> int:
-        assert isinstance(self._file_len_in_words, int)
-        assert 0 <= self._file_len_in_words
-        return self._file_len_in_words
-    
-    def _file_len_in_chars_plus_equals(
-        self    : OutputFile,
-        n_chars : int
-    ) -> None:
-        assert isinstance(self._file_len_in_chars, int)
-        assert isinstance(n_chars, int)
-        self._file_len_in_chars += n_chars
-        assert 0 <= self._file_len_in_chars
-
-    def get_file_len_in_chars(self : OutputFile) -> int:
-        assert isinstance(self._file_len_in_chars, int)
-        assert 0 <= self._file_len_in_chars
-        return self._file_len_in_chars
-
 
