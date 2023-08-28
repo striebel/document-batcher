@@ -17,7 +17,7 @@ from document_batcher.io.output_file import OutputFile
 from document_batcher.document.document_batch_iterator import DocumentBatchIterator
 
 
-PREDICTED_STATISTICS_KEY = 'character_frequency_statistics'
+PREDICTED_STATISTICS_KEY = 'character_frequencies'
 
 
 def process_documents(doc_batch_iterator):
@@ -90,7 +90,7 @@ if '__main__' == __name__:
         file_path                = args.output_file_path,
         predicted_statistics_key = PREDICTED_STATISTICS_KEY
     )
-    doc_batch_iterator = (
+    doc_batch_iterator = DocumentBatchIterator(
         logger         = logger,
         input_file     = input_file,
         output_file    = output_file,
@@ -98,6 +98,9 @@ if '__main__' == __name__:
     )
     
     retcode = process_documents(doc_batch_iterator)
+    
+    if 0 == retcode and not output_file.cache_exists():
+        output_file.write_cache_to_disk()
     
     sys.exit(retcode)
 ```
