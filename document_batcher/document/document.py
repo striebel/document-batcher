@@ -241,18 +241,6 @@ class Document:
     #######################################################
     #### predicted statistics for document
     
-    def _set_predicted_statistics_key(
-        self                     : Document,
-        predicted_statistics_key : str
-    ) -> None:
-        assert not hasattr(self, '_predicted_statistics_key')
-        assert isinstance(predicted_statistics_key, str)
-        self._predicted_statistics_key = predicted_statistics_key
-    
-    def _get_predicted_statistics_key(self : Document) -> str:
-        assert isinstance(self._predicted_statistics_key, str)
-        return self._predicted_statistics_key
-    
     def set_predicted_statistics(
         self                 : Document,
         predicted_statistics : dict
@@ -269,7 +257,11 @@ class Document:
     #######################################################
     #### output representation of document
     
-    def get_output_dict(self : Document) -> dict:
+    def get_output_dict(
+        self                     : Document,
+        predicted_statistics_key : str
+    ) -> dict:
+        assert isinstance(predicted_statistics_key, str)
         return {
             self._get_id_key_to_use()                    : self.get_id(),
             Document._get_len_in_sents_key()             : self.get_len_in_sents(),
@@ -277,7 +269,7 @@ class Document:
             Document._get_len_in_chars_key()             : self.get_len_in_chars(),
             Document._get_begin_doc_batch_datetime_key() : self._begin_doc_batch_datetime_to_str(),
             Document._get_end_doc_batch_datetime_key()   : self._end_doc_batch_datetime_to_str(),
-            self._get_predicted_statistics_key()         : self.get_predicted_statistics()
+            predicted_statistics_key                     : self.get_predicted_statistics()
         }
     
     
@@ -320,15 +312,11 @@ class Document:
     ####     initialize Document objects
     
     def __init__(
-        self                     : Document,
-        logger                   : Logger,
-        predicted_statistics_key : str,
-        doc_dict                 : dict
+        self     : Document,
+        logger   : Logger,
+        doc_dict : dict
     ) -> Document:
         self._set_logger(logger)            ; del logger
-        self._set_predicted_statistics_key(
-            predicted_statistics_key
-        )                                   ; del predicted_statistics_key
         
         doc_id = None
         for id_key in Document._get_id_keys():
@@ -359,22 +347,19 @@ class Document:
     
     @staticmethod
     def from_input_doc_dict(
-        logger                   : Logger,
-        predicted_statistics_key : str,
-        input_doc_dict           : dict,
-        max_sent_len_in_chars    : int
+        logger                : Logger,
+        input_doc_dict        : dict,
+        max_sent_len_in_chars : int
     ) -> Document:
         assert isinstance(input_doc_dict, dict)
         
         input_doc = Document(
-            logger                   = logger,
-            predicted_statistics_key = predicted_statistics_key,
-            doc_dict                 = input_doc_dict
-        )                                                       ; del logger
-        pass                                                    ; del predicted_statistics_key
+            logger   = logger,
+            doc_dict = input_doc_dict 
+        )                                     ; del logger
         input_doc._set_max_sent_len_in_chars(
             max_sent_len_in_chars
-        )                                                       ; del max_sent_len_in_chars
+        )                                     ; del max_sent_len_in_chars
         
         
         text = None
@@ -460,11 +445,9 @@ class Document:
         assert isinstance(output_doc_dict, dict)
         
         output_doc = Document(
-            logger                   = logger,
-            predicted_statistics_key = predicted_statistics_key,
-            doc_dict                 = output_doc_dict
-        )                                                        ; del logger
-        pass                                                     ; del predicted_statistics_key
+            logger   = logger,
+            doc_dict = output_doc_dict
+        )                              ; del logger
         
         #########################################
         ## recognize document length statistics
@@ -507,17 +490,15 @@ class Document:
         
         ##############################################
         ## recognize the predicted statistics dict
-
-        assert output_doc._get_predicted_statistics_key in output_doc_dict, \
+        
+        assert predicted_statistics_key in output_doc_dict, \
             '\n' + \
-            'output_doc._get_predicted_statistics_key(): ' + \
-                f'{output_doc._get_predicted_statistics_key()}\n' + \
-            'output_doc_dict.keys()                    : ' + \
-                f'{output_doc_dict.keys()}'
+            f'predicted_statistics_key: {predicted_statistics_key}\n' + \
+            f'output_doc_dict.keys()  : {output_doc_dict.keys()}'
         
         output_doc.set_predicted_statistics(
             output_doc_dict[
-                output_doc._get_predicted_statistics_key()
+                predicted_statistics_key
             ]
         )
         

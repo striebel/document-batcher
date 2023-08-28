@@ -27,22 +27,6 @@ class InputFile:
     
     
     #######################################################
-    #### predicted statistics key
-    
-    def _set_predicted_statistics_key(
-        self                     : InputFile,
-        predicted_statistics_key : str
-    ) -> None:
-        assert not hasattr(self, '_predicted_statistics_key')
-        assert isinstance(predicted_statistics_key, str)
-        self._predicted_statistics_key = predicted_statistics_key
-    
-    def _get_predicted_statistics_key(self : InputFile) -> str:
-        assert isinstance(self._predicted_statistics_key, str)
-        return self._predicted_statistics_key
-    
-    
-    #######################################################
     #### input file path
     
     def _set_file_path(
@@ -111,13 +95,11 @@ class InputFile:
         self                     : InputFile,
         logger                   : Logger     = None,                   # required
         file_path                : str        = None,                   # required
-        predicted_statistics_key : str        = 'predicted_statistics', # optional
         max_sent_len_in_chars    : int        = 2048,                   # optional
     ) -> InputFile:
         
         self._set_logger(logger)                                    ; del logger
         self._set_file_path(file_path)                              ; del file_path
-        self._set_predicted_statistics_key(predicted_statistics_key); del predicted_statistics_key
         self._set_max_sent_len_in_chars(max_sent_len_in_chars)      ; del max_sent_len_in_chars
         
         self._get_logger().debug(
@@ -226,7 +208,6 @@ class InputFile:
 
                 doc = Document.from_input_doc_dict(
                     logger                   = self._get_logger(),
-                    predicted_statistics_key = self._get_predicted_statistics_key(),
                     input_doc_dict           = doc_dict,
                     max_sent_len_in_chars    = self._get_max_sent_len_in_chars()
                 )

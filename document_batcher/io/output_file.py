@@ -236,10 +236,10 @@ class OutputFile:
     
     def __init__(
         self                     : OutputFile,
-        logger                   : Logger     = None,                   # required
-        file_path                : str        = None,                   # required
-        predicted_statistics_key : str        = 'predicted_statistics', # optional
-        from_cache_force         : bool       = False                   # optional
+        logger                   : Logger     = None,  # required
+        file_path                : str        = None,  # required
+        predicted_statistics_key : str        = None,  # required
+        from_cache_force         : bool       = False  # optional
     ) -> OutputFile:
         self._set_logger(logger)                                    ; del logger
         self._set_file_path(file_path)                              ; del file_path
@@ -463,7 +463,7 @@ class OutputFile:
     ## append a document to the output file
     
     def append_output_doc(
-        self : Writer,
+        self : OutputFile,
         doc  : Document
     ) -> None:
 
@@ -478,7 +478,11 @@ class OutputFile:
         assert 'a' == self._file.mode # 'a' for append
         
         
-        json_str = json.dumps(doc.get_output_dict())
+        json_str = json.dumps(
+            doc.get_output_dict(
+                predicted_statistics_key = self._get_predicted_statistics_key()
+            )
+        )
         if 0 < self._file.tell():
             json_str = '\n' + json_str
         
