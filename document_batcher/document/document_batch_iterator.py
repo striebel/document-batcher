@@ -60,16 +60,22 @@ class DocumentBatchIterator:
     
     def __init__(
         self           : DocumentBatchIterator,
-        logger         : Logger,
-        input_file     : InputFile,
-        output_file    : OutputFile,
-        monitor        : DocumentBatchMonitor,
-        doc_batch_size : int
+        logger         : Logger               = None, # required
+        input_file     : InputFile            = None, # required
+        output_file    : OutputFile           = None, # required
+        monitor        : DocumentBatchMonitor = None, # optional
+        doc_batch_size : int                  = 8     # optional
     ) -> DocumentBatchIterator:
         assert isinstance(logger, Logger) 
         assert isinstance(input_file, InputFile)
         assert isinstance(output_file, OutputFile)
-        assert isinstance(monitor, DocumentBatchMonitor)
+        if monitor is None:
+            monitor = DocumentBatchMonitor(
+                logger     = logger,
+                input_file = input_file
+            )
+        else:
+            assert isinstance(monitor, DocumentBatchMonitor)
         assert isinstance(doc_batch_size, int)
         assert 0 < doc_batch_size
         
@@ -180,3 +186,10 @@ class DocumentBatchIterator:
         
         
         self._output_file.delete_output_docs_after_index(end_doc_batch_index)
+
+        if (
+            self._output_file.get_file_len_in_docs()
+            < self._input_file.get_file_len_in_docs()
+        ):
+            self._output_file.open_for_appending()
+

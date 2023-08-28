@@ -10,7 +10,6 @@ from ..document.document import Document
 
 class InputFile:
     
-    
     #######################################################
     #### logger
     
@@ -64,15 +63,25 @@ class InputFile:
     
     
     #######################################################
-    #### cache file path
+    #### file path manipulations; cache file path
     
-    def _get_cache_file_path(
-        self : InputFile
-    ) -> str:
-        cache_file_path = \
-            self._file_path[:self._file_path.rfind('.')] \
-            + '.cache_v1.pickle'
-        return cache_file_path
+    def get_file_path_without_suffix(self : OutputFile) -> str:
+        file_name = os.path.basename(self._get_file_path())
+        suffix_index = file_name.rfind('.')
+        if 0 < suffix_index: # we want to make the base file name have a length
+                             # of at least one character
+            base = file_name[:suffix_index]
+        else:
+            base = file_name
+        return os.path.join(
+            os.path.dirname(self._get_file_path()),
+            base
+        )
+    
+    def _get_cache_file_path(self : InputFile) -> str:
+        return \
+            self.get_file_path_without_suffix() \
+            + '.input_file_cache_v1.pickle'
     
     
     #######################################################
@@ -100,15 +109,15 @@ class InputFile:
     
     def __init__(
         self                     : InputFile,
-        logger                   : Logger,
-        predicted_statistics_key : str,
-        file_path                : str,
-        max_sent_len_in_chars    : int,
+        logger                   : Logger     = None,                   # required
+        file_path                : str        = None,                   # required
+        predicted_statistics_key : str        = 'predicted_statistics', # optional
+        max_sent_len_in_chars    : int        = 2048,                   # optional
     ) -> InputFile:
         
         self._set_logger(logger)                                    ; del logger
-        self._set_predicted_statistics_key(predicted_statistics_key); del predicted_statistics_key
         self._set_file_path(file_path)                              ; del file_path
+        self._set_predicted_statistics_key(predicted_statistics_key); del predicted_statistics_key
         self._set_max_sent_len_in_chars(max_sent_len_in_chars)      ; del max_sent_len_in_chars
         
         self._get_logger().debug(
@@ -284,7 +293,7 @@ class InputFile:
         )
 
         self._next_doc_index = 0
-
+    
     
     #######################################################
     #### get file length statistics

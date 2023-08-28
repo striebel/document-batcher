@@ -138,7 +138,7 @@ class DocumentBatch:
 
         begin = self._list_of_docs[0].get_begin_doc_batch_datetime()
         end   = self._list_of_docs[-1].get_end_doc_batch_datetime()
-
+        
         n_secs = math.ceil((end - begin).total_seconds())
         
         self._monitor.post_batch_update(
@@ -150,7 +150,7 @@ class DocumentBatch:
         )
 
 
-    def write(
+    def write_to_disk(
         self : DocumentBatch
     ) -> None:
         
@@ -160,6 +160,10 @@ class DocumentBatch:
 
         for doc in self._list_of_docs:
             self._output_file.append_output_doc(doc)
+
+
+        self.update_monitor()
+        self.set_done(True)
 
 
     def set_done(

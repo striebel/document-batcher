@@ -261,7 +261,7 @@ class Document:
         assert isinstance(predicted_statistics, dict)
         self._predicted_statistics = predicted_statistics
     
-    def _get_predicted_statistics(self : Document) -> dict:
+    def get_predicted_statistics(self : Document) -> dict:
         assert isinstance(self._predicted_statistics, dict)
         return self._predicted_statistics
     
@@ -277,7 +277,7 @@ class Document:
             Document._get_len_in_chars_key()             : self.get_len_in_chars(),
             Document._get_begin_doc_batch_datetime_key() : self._begin_doc_batch_datetime_to_str(),
             Document._get_end_doc_batch_datetime_key()   : self._end_doc_batch_datetime_to_str(),
-            self._get_predicted_statistics_key()         : self._get_predicted_statistics()
+            self._get_predicted_statistics_key()         : self.get_predicted_statistics()
         }
     
     
@@ -371,9 +371,11 @@ class Document:
             predicted_statistics_key = predicted_statistics_key,
             doc_dict                 = input_doc_dict
         )                                                       ; del logger
+        pass                                                    ; del predicted_statistics_key
         input_doc._set_max_sent_len_in_chars(
             max_sent_len_in_chars
         )                                                       ; del max_sent_len_in_chars
+        
         
         text = None
         for text_key in Document._get_text_keys():
@@ -505,6 +507,13 @@ class Document:
         
         ##############################################
         ## recognize the predicted statistics dict
+
+        assert output_doc._get_predicted_statistics_key in output_doc_dict, \
+            '\n' + \
+            'output_doc._get_predicted_statistics_key(): ' + \
+                f'{output_doc._get_predicted_statistics_key()}\n' + \
+            'output_doc_dict.keys()                    : ' + \
+                f'{output_doc_dict.keys()}'
         
         output_doc.set_predicted_statistics(
             output_doc_dict[

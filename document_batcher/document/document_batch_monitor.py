@@ -13,9 +13,9 @@ class DocumentBatchMonitor():
 
     def __init__(
         self                                    : DocumentBatchMonitor,
-        input_file                              : InputFile,
-        logger                                  : Logger,
-        time_budget_in_hours                    : int,
+        logger                                  : Logger               = None, # required
+        input_file                              : InputFile            = None, # required
+        time_budget_in_hours                    : int                  = 24    # optional
     ) -> DocumentBatchMonitor:
         assert isinstance(input_file, InputFile)
         assert isinstance(logger, Logger)
