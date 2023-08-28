@@ -8,6 +8,7 @@ $ pip install document-batcher
 Example usage:
 ```py
 import argparse
+import logging
 import datetime
 import sys
 
@@ -72,6 +73,13 @@ if '__main__' == __name__:
         default=8
     )
     args = arg_parser.parse_args()
+    
+    logging.basicConfig(
+        format='%(asctime)s: %(levelname)s: %(name)s: %(message)s',
+        datefmt='%Y-%m-%dT%H:%M:%S'
+    )
+    logger = logging.getLogger('character_frequencies_app')
+    logger.setLevel(10) # DEBUG
     
     input_file = InputFile(
         logger    = logger,
