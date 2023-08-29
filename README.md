@@ -1,6 +1,6 @@
 # Document Batcher
 
-<a href="https://github.com/striebel/blob/trunk/LICENSE"><img alt="License" src="https://img.shields.io/github/license/striebel/document-batcher"></a>
+<a href="https://github.com/striebel/document-batcher/blob/trunk/LICENSE"><img alt="License" src="https://img.shields.io/github/license/striebel/document-batcher"></a>
 <a href="https://pypi.org/project/document-batcher/"><img alt="PyPI" src="https://img.shields.io/pypi/v/document-batcher"></a>
 <a href="https://pepy.tech/project/document-batcher"><img alt="Downloads" src="https://static.pepy.tech/badge/document-batcher"></a>
 
