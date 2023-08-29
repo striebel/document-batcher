@@ -24,11 +24,11 @@ def process_documents(doc_batch_iterator):
     
     begin = datetime.datetime.now(datetime.timezone.utc)
     
-    char_to_freq = dict()
-    
     for doc_batch in doc_batch_iterator:
     
         for doc in doc_batch.get_list_of_docs():
+            
+            char_to_freq = dict()
             
             for char in doc.get_full_text():
                 
