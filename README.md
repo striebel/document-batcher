@@ -1,4 +1,6 @@
-# document-batcher
+# Document Batcher
+
+<a href="https://pypi.org/project/document-batcher/"><img alt="PyPI" src="https://img.shields.io/pypi/v/document-batcher"></a>
 
 Install with
 ```sh
